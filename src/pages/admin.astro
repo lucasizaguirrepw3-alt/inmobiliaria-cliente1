@@ -21,6 +21,7 @@ const nombreAgencia = import.meta.env.PUBLIC_AGENCIA_NOMBRE || "Inmobiliaria";
         <a href="#publicar" class="block px-4 py-3 bg-primary-600 rounded-lg font-medium shadow-sm">🏠 Propiedades</a>
         <a href="#mensajes" class="block px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">✉️ Mensajes</a>
         <a href="/" target="_blank" class="block px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors mt-8 border-t border-slate-800 pt-4">🌐 Ver sitio web</a>
+        <button id="btn-publicar-sitio" class="w-full text-left px-4 py-3 bg-primary-700 hover:bg-primary-600 rounded-lg font-medium transition-colors">🚀 Publicar cambios</button>
       </nav>
       <div class="p-4 border-t border-slate-800">
         <button id="btn-logout" class="w-full text-left px-4 py-2 text-red-400 hover:text-red-300 font-medium transition-colors">Cerrar Sesión</button>
@@ -176,6 +177,31 @@ const nombreAgencia = import.meta.env.PUBLIC_AGENCIA_NOMBRE || "Inmobiliaria";
     document.getElementById('btn-logout')?.addEventListener('click', async () => {
       await supabase.auth.signOut();
       window.location.href = '/login';
+    });
+
+    // BOTÓN "PUBLICAR CAMBIOS": dispara un rebuild del sitio en Netlify.
+    // El sitio es estático: los cambios acá se guardan en la base al instante,
+    // pero el sitio público no se actualiza hasta que se reconstruye.
+    const btnPublicar = document.getElementById('btn-publicar-sitio');
+    const buildHookUrl = import.meta.env.PUBLIC_NETLIFY_BUILD_HOOK;
+
+    btnPublicar?.addEventListener('click', async () => {
+      if (!buildHookUrl) {
+        alert("Falta configurar el Build Hook de Netlify (variable PUBLIC_NETLIFY_BUILD_HOOK).");
+        return;
+      }
+      const textoOriginal = btnPublicar.innerText;
+      btnPublicar.innerText = "Publicando...";
+      btnPublicar.disabled = true;
+      try {
+        await fetch(buildHookUrl, { method: 'POST' });
+        alert("¡Listo! El sitio se está actualizando, tarda 1-2 minutos en verse reflejado.");
+      } catch (err) {
+        alert("No se pudo publicar. Revisá tu conexión e intentá de nuevo.");
+      } finally {
+        btnPublicar.innerText = textoOriginal;
+        btnPublicar.disabled = false;
+      }
     });
 
     // --- VARIABLES DE ESTADO PARA EDICIÓN ---
