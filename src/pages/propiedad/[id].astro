@@ -26,8 +26,6 @@ const galeria = prop.galeria || [
   "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80"
 ];
 
-// Un video genérico de recorrido de una casa si no hay uno cargado
-const videoYoutube = prop.video_url || "https://www.youtube.com/embed/y9j-BL5ocW8?si=ZqMtzO72xUfKHKT_";
 ---
 
 <MainLayout title={prop.titulo}>
@@ -103,21 +101,23 @@ const videoYoutube = prop.video_url || "https://www.youtube.com/embed/y9j-BL5ocW
           </div>
         </section>
 
-        <section class="pt-8 border-t border-slate-100">
-          <h2 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-2">
-            <span>🎥</span> Recorrido Virtual
-          </h2>
-          <div class="rounded-2xl overflow-hidden shadow-sm border border-slate-100 aspect-video bg-slate-100">
-            <iframe 
-              class="w-full h-full" 
-              src={videoYoutube} 
-              title="Recorrido en Video" 
-              frameborder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-              allowfullscreen>
-            </iframe>
-          </div>
-        </section>
+        {prop.video_url && (
+          <section class="pt-8 border-t border-slate-100">
+            <h2 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-2">
+              <span>🎥</span> Recorrido Virtual
+            </h2>
+            <div class="rounded-2xl overflow-hidden shadow-sm border border-slate-100 aspect-video bg-slate-100">
+              <iframe
+                class="w-full h-full"
+                src={prop.video_url}
+                title="Recorrido en Video"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen>
+              </iframe>
+            </div>
+          </section>
+        )}
 
         {prop.mapa_url && (
           <section class="pt-8 border-t border-slate-100">

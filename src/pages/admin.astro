@@ -10,9 +10,28 @@ const nombreAgencia = import.meta.env.PUBLIC_AGENCIA_NOMBRE || "Inmobiliaria";
     <meta name="viewport" content="width=device-width" />
     <title>Panel de Control | {nombreAgencia}</title>
   </head>
-  <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex">
+  <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col md:flex-row">
 
-    <aside class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex">
+    <header class="md:hidden bg-slate-900 text-white flex items-center justify-between px-4 h-16 sticky top-0 z-50">
+      <div>
+        <h2 class="text-lg font-black tracking-tight leading-none">Panel Admin</h2>
+        <p class="text-slate-400 text-xs">{nombreAgencia}</p>
+      </div>
+      <button id="btn-menu-admin" aria-label="Abrir menú" class="text-slate-300 hover:text-white p-2">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+    </header>
+    <nav id="menu-movil-admin" class="hidden md:hidden bg-slate-900 text-white p-4 space-y-2 sticky top-16 z-40">
+      <a href="#publicar" class="block px-4 py-3 bg-primary-600 rounded-lg font-medium shadow-sm">🏠 Propiedades</a>
+      <a href="#mensajes" class="block px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">✉️ Mensajes</a>
+      <a href="/" target="_blank" class="block px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">🌐 Ver sitio web</a>
+      <button id="btn-publicar-sitio-mobile" class="w-full text-left px-4 py-3 bg-primary-700 hover:bg-primary-600 rounded-lg font-medium transition-colors">🚀 Publicar cambios</button>
+      <button id="btn-logout-mobile" class="w-full text-left px-4 py-3 text-red-400 hover:text-red-300 font-medium transition-colors border-t border-slate-800 pt-4 mt-2">Cerrar Sesión</button>
+    </nav>
+
+    <aside class="w-64 bg-slate-900 text-white flex-col hidden md:flex">
       <div class="p-6 border-b border-slate-800">
         <h2 class="text-xl font-black tracking-tight">Panel Admin</h2>
         <p class="text-slate-400 text-sm">{nombreAgencia}</p>
@@ -174,34 +193,47 @@ const nombreAgencia = import.meta.env.PUBLIC_AGENCIA_NOMBRE || "Inmobiliaria";
       return;
     }
 
-    document.getElementById('btn-logout')?.addEventListener('click', async () => {
-      await supabase.auth.signOut();
-      window.location.href = '/login';
+    document.querySelectorAll('#btn-logout, #btn-logout-mobile').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        await supabase.auth.signOut();
+        window.location.href = '/login';
+      });
+    });
+
+    // MENÚ MÓVIL: el sidebar solo se ve en desktop, en mobile se abre/cierra esta barra.
+    const btnMenuAdmin = document.getElementById('btn-menu-admin');
+    const menuMovilAdmin = document.getElementById('menu-movil-admin');
+    btnMenuAdmin?.addEventListener('click', () => {
+      menuMovilAdmin.classList.toggle('hidden');
+    });
+    menuMovilAdmin?.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => menuMovilAdmin.classList.add('hidden'));
     });
 
     // BOTÓN "PUBLICAR CAMBIOS": dispara un rebuild del sitio en Netlify.
     // El sitio es estático: los cambios acá se guardan en la base al instante,
     // pero el sitio público no se actualiza hasta que se reconstruye.
-    const btnPublicar = document.getElementById('btn-publicar-sitio');
     const buildHookUrl = import.meta.env.PUBLIC_NETLIFY_BUILD_HOOK;
 
-    btnPublicar?.addEventListener('click', async () => {
-      if (!buildHookUrl) {
-        alert("Falta configurar el Build Hook de Netlify (variable PUBLIC_NETLIFY_BUILD_HOOK).");
-        return;
-      }
-      const textoOriginal = btnPublicar.innerText;
-      btnPublicar.innerText = "Publicando...";
-      btnPublicar.disabled = true;
-      try {
-        await fetch(buildHookUrl, { method: 'POST' });
-        alert("¡Listo! El sitio se está actualizando, tarda 1-2 minutos en verse reflejado.");
-      } catch (err) {
-        alert("No se pudo publicar. Revisá tu conexión e intentá de nuevo.");
-      } finally {
-        btnPublicar.innerText = textoOriginal;
-        btnPublicar.disabled = false;
-      }
+    document.querySelectorAll('#btn-publicar-sitio, #btn-publicar-sitio-mobile').forEach(btnPublicar => {
+      btnPublicar.addEventListener('click', async () => {
+        if (!buildHookUrl) {
+          alert("Falta configurar el Build Hook de Netlify (variable PUBLIC_NETLIFY_BUILD_HOOK).");
+          return;
+        }
+        const textoOriginal = btnPublicar.innerText;
+        btnPublicar.innerText = "Publicando...";
+        btnPublicar.disabled = true;
+        try {
+          await fetch(buildHookUrl, { method: 'POST' });
+          alert("¡Listo! El sitio se está actualizando, tarda 1-2 minutos en verse reflejado.");
+        } catch (err) {
+          alert("No se pudo publicar. Revisá tu conexión e intentá de nuevo.");
+        } finally {
+          btnPublicar.innerText = textoOriginal;
+          btnPublicar.disabled = false;
+        }
+      });
     });
 
     // --- VARIABLES DE ESTADO PARA EDICIÓN ---
